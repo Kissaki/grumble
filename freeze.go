@@ -56,6 +56,17 @@ func (server *Server) FreezeToFile() (err error) {
 	if err != nil {
 		return err
 	}
+	
+	mainPath := filepath.Join(Args.DataDir, "servers", strconv.FormatInt(server.Id, 10), "main.fz")
+	mainPathBackup := mainPath + ".bck"
+	if _, err = os.Stat(mainPathBackup); err == nil {
+		// If file exists, remove old one so we can rename
+		os.Remove(mainPathBackup)
+	}
+	err = os.Rename(mainPath, mainPathBackup)
+	if err != nil {
+		return err
+	}
 	err = os.Rename(f.Name(), filepath.Join(Args.DataDir, "servers", strconv.FormatInt(server.Id, 10), "main.fz"))
 	if err != nil {
 		return err
@@ -73,6 +84,10 @@ func (server *Server) FreezeToFile() (err error) {
 // Open a new freeze log
 func (server *Server) openFreezeLog() (err error) {
 	logfn := filepath.Join(Args.DataDir, "servers", strconv.FormatInt(server.Id, 10), "log.fz")
+	// If the freeze log file is still open, close it so we can remove it
+	if server.freezelog != nil {
+		server.freezelog.Close()
+	}
 	err = os.Remove(logfn)
 	if os.IsNotExist(err) {
 		// OK. File does not exist...
@@ -508,6 +523,7 @@ func NewServerFromFrozen(name string) (s *Server, err error) {
 	if err != nil {
 		return nil, err
 	}
+	defer walker.Close()
 
 	for {
 		values, err := walker.Next()

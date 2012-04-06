@@ -99,6 +99,12 @@ func NewReaderWalker(r io.Reader) (walker *Walker, err error) {
 	return walker, nil
 }
 
+func (walker *Walker) Close() {
+	if f, ok := walker.r.(*os.File); ok {
+		f.Close()
+	}
+}
+
 // Next returns the next transaction group in the log as a slice of
 // pointers to the protobuf-serialized log entries.
 //

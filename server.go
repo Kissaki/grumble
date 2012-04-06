@@ -1373,7 +1373,7 @@ func (server *Server) Start() (err error) {
 	// Open a fresh freezer log
 	err = server.openFreezeLog()
 	if err != nil {
-		server.Fatal(err)
+		server.Fatalf("Could not open Freezelog for virtual server %v: %v", server.Id, err)
 	}
 
 	// Reset the server's per-launch data to
