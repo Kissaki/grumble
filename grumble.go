@@ -26,11 +26,22 @@ func main() {
 		return
 	}
 
-	// Open the data dir to check whether it exists.
-	dataDir, err := os.Open(Args.DataDir)
+	// Open the data dir to check whether it exists - create it if necessary.
+	dataDirPath := Args.DataDir
+	dataDir, err := os.Open(dataDirPath)
 	if err != nil {
-		log.Fatalf("Unable to open data directory: %v", err)
-		return
+		if os.IsNotExist(err) {
+			errMk := os.Mkdir(dataDirPath, 0700)
+			if errMk != nil {
+				log.Fatalf("Unable to create data directory: %v", errMk)
+				return
+			}
+			dataDir, err = os.Open(dataDirPath)
+		}
+		if err != nil {
+			log.Fatalf("Unable to open data directory: %v", err)
+			return
+		}
 	}
 	dataDir.Close()
 
